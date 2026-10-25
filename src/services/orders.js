@@ -17,7 +17,9 @@ export async function createOrder(store, request) {
       throw new OutOfStockError(product.name);
     }
 
-    const unitPriceCents = Math.trunc(product.price * 100);
+    // Prices like 19.99 * 100 come out as 1998.9999..., so round instead of
+    // cutting off the decimals.
+    const unitPriceCents = Math.round(product.price * 100);
     totalCents += unitPriceCents * item.quantity;
     reserved.push({
       product,
