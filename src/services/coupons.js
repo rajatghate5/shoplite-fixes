@@ -1,12 +1,12 @@
 import { CouponError } from "../errors.js";
 
-// Parse a timestamp without a UTC offset, such as 2030-01-01T00:00:00.
-function parseLocalTimestamp(value) {
-  const localTimestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/u;
-  if (!localTimestamp.test(value)) {
-    throw new RangeError(`invalid local timestamp: ${value}`);
+// Coupon expiry dates look like 2030-01-01T00:00:00Z.
+function parseTimestamp(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new RangeError(`invalid timestamp: ${value}`);
   }
-  return new Date(value);
+  return date;
 }
 
 export function applyCoupon(store, code, totalCents) {
@@ -15,7 +15,7 @@ export function applyCoupon(store, code, totalCents) {
     throw new CouponError(`unknown coupon code: ${code}`);
   }
 
-  const expiresAt = parseLocalTimestamp(coupon.expiresAt);
+  const expiresAt = parseTimestamp(coupon.expiresAt);
   if (expiresAt < new Date()) {
     throw new CouponError(`coupon has expired: ${code}`);
   }
