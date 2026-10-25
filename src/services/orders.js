@@ -30,10 +30,20 @@ export async function createOrder(store, request) {
     totalCents = applyCoupon(store, request.coupon_code, totalCents);
   }
 
-  await chargePayment(totalCents);
-
+  // Take the stock now, before we wait on payment. If we wait first, other
+  // orders can sneak in during the wait and grab the same units.
   for (const reservation of reserved) {
     reservation.product.stock -= reservation.quantity;
+  }
+
+  try {
+    await chargePayment(totalCents);
+  } catch (error) {
+    // Payment failed, so put the stock back.
+    for (const reservation of reserved) {
+      reservation.product.stock += reservation.quantity;
+    }
+    throw error;
   }
 
   return store.saveOrder({
