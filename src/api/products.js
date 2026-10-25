@@ -11,7 +11,8 @@ export function listProducts(store, url) {
   const pageSize = positiveInteger(url.searchParams.get("page_size"), 10);
   const all = store.listProducts();
 
-  const offset = page * pageSize;
+  // Pages start at 1, so page 1 should begin with the first product.
+  const offset = (page - 1) * pageSize;
   return {
     page,
     page_size: pageSize,
